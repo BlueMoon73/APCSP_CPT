@@ -1,15 +1,121 @@
-    import sys
+import sys
 
-    import pygame
+import pygame
 
-    # Initialize Pygame
-    pygame.init()
+# Initialize Pygame
+pygame.init()
 
-    # Set the window size
-    WIDTH = 800
-    HEIGHT = 600
+# Set the window size
+WIDTH = 800
+HEIGHT = 600
 
-    # Create the window
+# Create the windowimport sys
+
+import pygame
+
+
+class Player:
+    def __init__(self, image_path, dim: pygame.Vector2, pos: pygame.Vector2, grappleSpeed, playerSpeed):
+        self.image = pygame.transform.scale(pygame.image.load(image_path), dim)
+        self.width = dim[0]
+        self.height = dim[1]
+        self.pos = pos
+        self.vel = pygame.Vector2(0, 0)
+        self.playerSpeed = playerSpeed
+        self.grappleSpeed = grappleSpeed
+        self.grappleAttached = False
+        self.grapplePos = [float, float]
+        self.grappleTarget = None
+
+
+    def draw(self, screen):
+        self.drawCharacter(screen)
+
+    def drawCharacter(self, screen):
+        screen.blit(self.image, (self.pos[0], self.pos[1]))
+
+    def grapple(self, screen):
+        mousePos = pygame.mouse.get_pos()
+        if self.grappleAttached:
+
+            # Move stick figure towards grappling hook
+
+            self.pos[0] += (self.grapplePos[0] - self.pos[0]) * 0.1
+
+            self.pos[1] += (self.grapplePos[1] - self.pos[1]) * 0.1
+
+            # Check if stick figure has reached grappling hook
+            if abs(self.pos[0] - self.grapplePos[0]) < 50 and abs(self.pos[1] - self.grapplePos[1]) < 50:
+                self.grappleAttached = False
+        else:
+            # Check if mouse is clicked
+            if pygame.mouse.get_pressed()[0]:
+                self.grapplePos[0] = mousePos[0]
+                self.grapplePos[1] = mousePos[1]
+                self.grappleAttached = True
+
+            # Apply gravity
+            # self.pos[1] += 10
+
+        # Clear screen
+        screen.fill((255, 255, 255))
+
+        # Draw stick figure
+        screen.blit(self.image, (self.pos[0], self.pos[1]))
+
+        # Draw grappling hook
+        if not self.grappleAttached:
+            pygame.draw.line(screen, (0, 0, 0), (self.pos[0], self.pos[1]), (mousePos[0], mousePos[1]), 2)
+
+        else:
+            pygame.draw.line(screen, (0, 0, 0), (self.pos[0], self.pos[1]), (self.grapplePos[0], self.grapplePos[1]),
+                             2)
+
+        # Update display
+        pygame.display.update()
+
+
+class Window:
+    def __init__(self, width, height):
+        # Initialize Pygame
+        pygame.init()
+        self.width = width
+        self.height = height
+        self.running = True;
+        self.screen = pygame.display.set_mode((self.width, self.height))
+        self.clock = pygame.time.Clock()
+        self.screen.fill((255, 255, 255))
+
+    def run(self, loop):
+        while self.running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    self.running = False
+                    sys.exit()
+            loop()
+
+    def runClock(self):
+        # Set clock
+        self.clock.tick(60)
+
+        # Update Display
+        pygame.display.update()
+
+
+window = Window(0, 0)
+player = Player("octopus_sprite.png", pygame.Vector2(100, 100), pygame.Vector2(15.0, 10.0), 2, 2)
+player.draw(window.screen)
+
+
+def game():
+    player.grapple(window.screen)
+    window.runClock()
+
+
+window.run(game)
+pygame.quit()
+
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
     # Load stick figure sprite
