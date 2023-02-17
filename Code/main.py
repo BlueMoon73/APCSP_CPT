@@ -45,18 +45,34 @@ class Player:
 
     def drawGrapple(self, screen, mousePos):
         # Draw grappling hook
+
+        XOFfset = 8
+        YOffset = 60
         if not self.grappleAttached:
-            pygame.draw.line(screen, (0, 0, 0), (self.pos[0] - 50, self.pos[1] - 50), (mousePos[0], mousePos[1]), 2)
+            pygame.draw.line(screen, (0, 0, 0), (self.pos[0] + XOFfset, self.pos[1] + YOffset),
+                             (mousePos[0], mousePos[1]), 2)
 
         else:
-            pygame.draw.line(screen, (0, 0, 0), (self.pos[0], self.pos[1]), (self.grapplePos[0], self.grapplePos[1]),
+            pygame.draw.line(screen, (0, 0, 0), (self.pos[0] + XOFfset, self.pos[1] + YOffset),
+                             (self.grapplePos[0], self.grapplePos[1]),
                              2)
 
     def drawChar(self, screen):
         # Draw stick figure
         screen.blit(self.image, (self.pos[0], self.pos[1]))
 
-    def main(self, screen):
+    def collideWithPlatform(self, platform):
+        if self.pos[1] + self.height < platform.rect.top:
+            return False
+        if self.pos[1] > platform.rect.bottom:
+            return False
+        if self.pos[0] + self.width < platform.rect.left:
+            return False
+        if self.pos[0] > platform.rect.right:
+            return False
+        return True
+
+    def main(self, screen, platform):
         mousePos = pygame.mouse.get_pos()
         if self.grappleAttached:
             self.moveTowardsGrapple()
@@ -73,19 +89,20 @@ class Player:
                 self.pos[1] = 0
             elif (self.pos[1] > screenInfo.current_h - 100):
                 self.pos[1] = screenInfo.current_h - 100
+            for platform in platforms:
+                if self.collideWithPlatform(platform):
+                    player.pos[1] = platform.rect.top - player.height
 
             # Apply gravity
             self.pos[1] += 5
 
         # Clear screen
-        screen.fill((255, 255, 255))
 
         self.drawChar(screen)
 
         self.drawGrapple(screen, mousePos)
 
-        # Update display
-        pygame.display.update()
+        #
 
 
 class Window:
@@ -132,15 +149,19 @@ class Platform:
 
 window = Window(screenInfo.current_w, screenInfo.current_h)
 player = Player("octopus_sprite.png", pygame.Vector2(100, 100), pygame.Vector2(15.0, 10.0), 2, 2)
-player.draw(window.screen)
 
-count = 0
-plat1 = Platform((255, 0, 0), (100, 100, 50, 50), 0)
+platform1 = Platform((65, 85, 210), (100, 400, 800, 300), 0)
+platform2 = Platform((128, 10, 155), (screenInfo.current_w - 900, screenInfo.current_h - 100, 600, 60), 3)
+
+platforms = [platform1, platform2]
+player.main(window.screen, platforms)
 
 
 def game():
-    player.main(window.screen)
-    plat1.drawRect()
+    window.screen.fill((255, 255, 255))
+    player.main(window.screen, platforms)
+    for platform in platforms:
+        platform.drawRect()
     window.runClock()
 
 
